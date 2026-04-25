@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+:root {
+  --background: 255 255 255;
+  --foreground: 10 10 10;
+  --gold: 212 175 55;
+}
+
+.dark {
+  --background: 10 10 10;
+  --foreground: 255 255 255;
+}
+
+body {
+  background-color: white;
+  color: black;
+}
+
+.dark body {
+  background-color: #0A0A0A;
+  color: white;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .product-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}/* Анимации для карточек товаров */
+.product-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.dark .product-card:hover {
+  box-shadow: 0 20px 40px rgba(212, 175, 55, 0.15);
+}
+
+/* Анимация покраски цены при наведении */
+.price-animation {
+  position: relative;
+  display: inline-block;
+  font-weight: 700;
+  background: linear-gradient(90deg, currentColor 0%, currentColor 50%, #D4AF37 50%, #D4AF37 100%);
+  background-size: 200% 100%;
+  background-position: 0% 0%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  transition: background-position 0.4s ease;
+}
+
+.price-animation:hover {
+  background-position: -100% 0%;
+}
+
+/* Обычный цвет текста (когда не наведён) */
+.price-default {
+  color: inherit;
+}
+
+.dark .price-default {
+  color: white;
+}/* Анимация кнопки "В корзину" — золотой перелив слева направо */
+.btn-cart-animation {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+.btn-cart-animation::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+  z-index: -1;
+}
+
+.btn-cart-animation:hover::before {
+  left: 100%;
+}
+
+.btn-cart-animation:hover {
+  background-color: #C4A030;
+  transform: scale(1.02);
+}
