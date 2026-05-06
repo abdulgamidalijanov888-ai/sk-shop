@@ -6,7 +6,7 @@ import { useStore, Product } from '../store/useStore';
 import Link from 'next/link';
 import { 
   ArrowLeft, Package, ShoppingBag, Star, DollarSign, 
-  Plus, Edit, Trash2, LogOut, BarChart3, Settings, X, Home, Upload, Image as ImageIcon
+  Plus, Edit, Trash2, LogOut, BarChart3, Settings, X, Home
 } from 'lucide-react';
 
 export default function AdminPage() {
@@ -18,12 +18,18 @@ export default function AdminPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    const success = adminLogin(password);
-    if (success) {
-      setPassword('');
-      setLoginError('');
+    const user = JSON.parse(localStorage.getItem('sk-shop-current-user') || 'null');
+    
+    if (user && user.role === 'admin') {
+      const success = adminLogin(password);
+      if (success) {
+        setPassword('');
+        setLoginError('');
+      } else {
+        setLoginError('Неверный пароль');
+      }
     } else {
-      setLoginError('Неверный пароль');
+      setLoginError('Доступ запрещён. Только для администратора.');
     }
   };
 
@@ -75,7 +81,7 @@ export default function AdminPage() {
                 fontWeight: '500',
                 color: darkMode ? '#FFFFFF' : '#000000',
               }}>
-                Пароль
+                Пароль администратора
               </label>
               <input
                 type="password"
@@ -137,7 +143,7 @@ export default function AdminPage() {
             fontSize: '13px',
             color: darkMode ? '#5C5C5E' : '#999999',
           }}>
-            Пароль: admin123
+            Только для администратора
           </p>
         </div>
       </div>
@@ -348,90 +354,12 @@ function ProductsPanel({ darkMode }: { darkMode: boolean }) {
 }
 
 function ProductModal({ title, formData, setFormData, onSave, onClose, darkMode }: any) {
-  const [dragActive, setDragActive] = useState(false);
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    processFile(file);
-  };
-
-  const processFile = (file: File) => {
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Файл слишком большой. Максимальный размер 5 МБ');
-      return;
-    }
-    if (!file.type.startsWith('image/')) {
-      alert('Пожалуйста, выберите изображение');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64 = event.target?.result as string;
-      setFormData({ ...formData, img: base64 });
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true);
-    } else if (e.type === 'dragleave') {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    const file = e.dataTransfer.files?.[0];
-    if (file) processFile(file);
-  };
-
-  const clearImage = () => {
-    setFormData({ ...formData, img: '' });
-  };
-
   return (
-    <div 
-      style={{ 
-        position: 'fixed', 
-        top: 0, 
-        left: 0, 
-        right: 0, 
-        bottom: 0, 
-        backgroundColor: 'rgba(0,0,0,0.7)', 
-        backdropFilter: 'blur(5px)',
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        zIndex: 1000, 
-        padding: '16px' 
-      }} 
-      onClick={onClose}
-    >
-      <div 
-        style={{ 
-          maxWidth: '500px', 
-          width: '100%', 
-          maxHeight: '90vh', 
-          overflowY: 'auto',
-          backgroundColor: darkMode ? '#1C1C1E' : '#FFFFFF',
-          borderRadius: '24px', 
-          padding: '24px' 
-        }} 
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }} onClick={onClose}>
+      <div style={{ maxWidth: '500px', width: '100%', maxHeight: '90vh', overflowY: 'auto', backgroundColor: darkMode ? '#1C1C1E' : '#FFFFFF', borderRadius: '24px', padding: '24px' }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: '700', color: darkMode ? '#FFFFFF' : '#000000' }}>{title}</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}>
-            <X size={24} color={darkMode ? '#FFFFFF' : '#000000'} />
-          </button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}><X size={24} color={darkMode ? '#FFFFFF' : '#000000'} /></button>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -443,129 +371,22 @@ function ProductModal({ title, formData, setFormData, onSave, onClose, darkMode 
           </div>
           
           <Input label="Категория" value={formData.category} onChange={(e: any) => setFormData({ ...formData, category: e.target.value })} darkMode={darkMode} />
+          <Input label="Ссылка на фото" value={formData.img} onChange={(e: any) => setFormData({ ...formData, img: e.target.value })} darkMode={darkMode} />
           
-          {/* ЗАГРУЗКА ФОТО */}
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: darkMode ? '#FFFFFF' : '#000000' }}>Фото товара *</label>
-            
-            {formData.img ? (
-              <div style={{ position: 'relative', marginBottom: '12px' }}>
-                <img 
-                  src={formData.img} 
-                  alt="Предпросмотр" 
-                  style={{ 
-                    width: '100%', 
-                    maxHeight: '200px', 
-                    objectFit: 'contain', 
-                    borderRadius: '12px',
-                    backgroundColor: darkMode ? '#0A0A0A' : '#F0F0F0'
-                  }} 
-                />
-                <button 
-                  onClick={clearImage}
-                  style={{
-                    position: 'absolute',
-                    top: '8px',
-                    right: '8px',
-                    padding: '8px',
-                    backgroundColor: '#FF3B30',
-                    border: 'none',
-                    borderRadius: '50%',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <X size={16} color="white" />
-                </button>
-              </div>
-            ) : (
-              <div
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
-                style={{
-                  border: `2px dashed ${dragActive ? '#D4AF37' : darkMode ? '#2C2C2E' : '#E5E5E5'}`,
-                  borderRadius: '12px',
-                  padding: '32px',
-                  textAlign: 'center',
-                  backgroundColor: darkMode ? '#0A0A0A' : '#F0F0F0',
-                  transition: 'all 0.2s',
-                  cursor: 'pointer',
-                }}
-                onClick={() => document.getElementById('fileInput')?.click()}
-              >
-                <input
-                  id="fileInput"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                  style={{ display: 'none' }}
-                />
-                <Upload size={32} style={{ margin: '0 auto 12px', color: dragActive ? '#D4AF37' : '#8E8E93' }} />
-                <p style={{ marginBottom: '8px', fontWeight: '500' }}>
-                  {dragActive ? 'Отпустите файл' : 'Нажмите или перетащите фото'}
-                </p>
-                <p style={{ fontSize: '13px', color: '#8E8E93' }}>
-                  PNG, JPG, GIF до 5 МБ
-                </p>
-              </div>
-            )}
-          </div>
-
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: darkMode ? '#FFFFFF' : '#000000' }}>Описание</label>
-            <textarea 
-              value={formData.description} 
-              onChange={(e: any) => setFormData({ ...formData, description: e.target.value })} 
-              rows={3} 
-              style={{ 
-                width: '100%', 
-                padding: '14px', 
-                backgroundColor: darkMode ? '#0A0A0A' : '#F0F0F0', 
-                border: 'none', 
-                borderRadius: '12px', 
-                fontSize: '16px', 
-                color: darkMode ? '#FFFFFF' : '#000000', 
-                outline: 'none', 
-                resize: 'vertical' 
-              }} 
-            />
+            <textarea value={formData.description} onChange={(e: any) => setFormData({ ...formData, description: e.target.value })} rows={3} style={{ width: '100%', padding: '14px', backgroundColor: darkMode ? '#0A0A0A' : '#F0F0F0', border: 'none', borderRadius: '12px', fontSize: '16px', color: darkMode ? '#FFFFFF' : '#000000', outline: 'none', resize: 'vertical' }} />
           </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <input 
-              type="checkbox" 
-              id="inStock" 
-              checked={formData.inStock} 
-              onChange={(e: any) => setFormData({ ...formData, inStock: e.target.checked })} 
-              style={{ width: '20px', height: '20px', cursor: 'pointer' }} 
-            />
+            <input type="checkbox" id="inStock" checked={formData.inStock} onChange={(e: any) => setFormData({ ...formData, inStock: e.target.checked })} style={{ width: '20px', height: '20px', cursor: 'pointer' }} />
             <label htmlFor="inStock" style={{ cursor: 'pointer', color: darkMode ? '#FFFFFF' : '#000000' }}>В наличии</label>
           </div>
         </div>
 
         <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-          <button onClick={onClose} style={{ 
-            flex: 1, padding: '16px', 
-            backgroundColor: darkMode ? '#2C2C2E' : '#F0F0F0',
-            color: darkMode ? '#FFFFFF' : '#000000', 
-            fontWeight: '600', fontSize: '16px',
-            border: 'none', borderRadius: '16px', cursor: 'pointer' 
-          }}>
-            Отмена
-          </button>
-          <button onClick={onSave} style={{ 
-            flex: 1, padding: '16px', 
-            backgroundColor: '#D4AF37',
-            color: '#000', 
-            fontWeight: '600', fontSize: '16px',
-            border: 'none', borderRadius: '16px', cursor: 'pointer' 
-          }}>
-            Сохранить
-          </button>
+          <button onClick={onClose} style={{ flex: 1, padding: '16px', backgroundColor: darkMode ? '#2C2C2E' : '#F0F0F0', color: darkMode ? '#FFFFFF' : '#000000', fontWeight: '600', fontSize: '16px', border: 'none', borderRadius: '16px', cursor: 'pointer' }}>Отмена</button>
+          <button onClick={onSave} style={{ flex: 1, padding: '16px', backgroundColor: '#D4AF37', color: '#000', fontWeight: '600', fontSize: '16px', border: 'none', borderRadius: '16px', cursor: 'pointer' }}>Сохранить</button>
         </div>
       </div>
     </div>
@@ -576,21 +397,7 @@ function Input({ label, type = 'text', value, onChange, darkMode }: any) {
   return (
     <div>
       <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: darkMode ? '#FFFFFF' : '#000000' }}>{label}</label>
-      <input 
-        type={type} 
-        value={value} 
-        onChange={onChange} 
-        style={{ 
-          width: '100%', 
-          padding: '14px', 
-          backgroundColor: darkMode ? '#0A0A0A' : '#F0F0F0', 
-          border: 'none', 
-          borderRadius: '12px', 
-          fontSize: '16px', 
-          color: darkMode ? '#FFFFFF' : '#000000', 
-          outline: 'none' 
-        }} 
-      />
+      <input type={type} value={value} onChange={onChange} style={{ width: '100%', padding: '14px', backgroundColor: darkMode ? '#0A0A0A' : '#F0F0F0', border: 'none', borderRadius: '12px', fontSize: '16px', color: darkMode ? '#FFFFFF' : '#000000', outline: 'none' }} />
     </div>
   );
 }

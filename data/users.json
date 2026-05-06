@@ -1,0 +1,18 @@
+[
+  {
+    "id": "admin-001",
+    "name": "Администратор",
+    "email": "admin@sk-shop.ru",
+    "password": "$2a$10$rOzQ3nTq0HtMvq6Yh8mQWeZ5kqI9RwZw5Q9XyZbKq6p0n1a7bC8dG",
+    "role": "admin",
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "1777807096350",
+    "name": "Ахмед",
+    "email": "test@mail.ru",
+    "password": "$2b$10$lW8CI56wDAuwcYwK4pkz1uoW5JtnNByqgH7m2.71vWY9Pteim1Qsi",
+    "role": "user",
+    "createdAt": "2026-05-03T11:18:16.350Z"
+  }
+]
